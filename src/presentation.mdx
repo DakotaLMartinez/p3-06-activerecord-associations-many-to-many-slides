@@ -1,8 +1,498 @@
 import TerminalCommand from "./components/TerminalCommand";
 
 
-# MDXP
+# ActiveRecord Associations - Many to Many
 
-Write your slide deck here...
 
 ---
+
+<!-- Begin Slide -->
+
+## Key Concepts for the day:
+
+- Rake
+- Migrations
+- Seeding a database
+- Active Record Queries
+- Active Record Associations: Many to Many
+- Has many, through
+- Join models
+- Custom instance and class methods 
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## Goals for Today
+
+- Review the connection between database schema and ActiveRecord relationships
+- Implement a many to many association between two models
+- Understand the many to many pattern
+- Read and understand documentation on ActiveRecord association methods
+- Use ActiveRecord methods to generate queries for related data
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## Important Resources for Today
+- [RailsGuides on ActiveRecord](https://guides.rubyonrails.org/v6.1/active_record_basics.html)
+- [RailsGuides on ActiveRecord Migrations](https://guides.rubyonrails.org/v6.1/active_record_migrations.html)
+- [RailsGuides for ActiveRecord Query Interface](https://guides.rubyonrails.org/v6.1/active_record_querying.html)
+- [RailsGuides for ActiveRecord Associations](https://guides.rubyonrails.org/v6.1/association_basics.html)
+- [APIDock has_many](https://apidock.com/rails/ActiveRecord/Associations/ClassMethods/has_many)
+- [APIDock belongs_to](https://apidock.com/rails/v5.2.3/ActiveRecord/Associations/ClassMethods/belongs_to)
+- [VSCode Sqlite Extension](https://marketplace.visualstudio.com/items?itemName=alexcvzz.vscode-sqlite)
+- [ActiveRecord::Migration docs](https://api.rubyonrails.org/v6.1/classes/ActiveRecord/Migration.html)
+- [ActiveRecord::ConnectionAdapters::TableDefinition docs (what you can do with the t passed to the create_table block)](https://api.rubyonrails.org/v6.1/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html)
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+### Key Features we're going to add to our Dog Walker CLI:
+
+- Add ability to create walks and add multiple dogs to them
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+### Key Refactors for Dog Walker CLI
+
+- Part 1
+  - Migrations
+    - `dog_walks` table
+      - dog_id (foreign key)
+      - walk_id (foreign key)
+    - `walks` table
+      - remove reference to dogs
+  - Models/Associations
+    - Add `DogWalk` model
+    - Rework `Dog` and `Walk` models to utilize `DogWalk` to establish many-to-many
+- Part 2
+  - Custom Class methods
+    - `Walk` class
+      - Add `.recent` method for returning all recent walks
+    - `Dog` class
+      - update `.needs_feeding` method to use an AR query method instead of filter
+      - update `.needs_walking` method to use an AR query method instead of filter 
+      - remove the `update` calls in `walk` and `feed` as they contain duplicated data
+  - Migration (remove time columns we no longer need)
+    - `dogs` table
+    - name (string)
+    - age (string)
+    - breed (string)
+    - favorite_treats (string)
+    - ~~last_fed_at (datetime)~~
+    - ~~last_walked_at (datetime)~~
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## The Many to Many Pattern
+
+![Many to Many Diagram](https://res.cloudinary.com/dnocv6uwb/image/upload/v1635806878/macros-diagram_unp7zq.png)
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## What is the difference between a one to many relationship and a many to many relationship?
+
+- One to Many relationship doesn't require a join model
+- Many to Many requires a join model (in this case: PostTag)
+
+<br />
+
+```rb
+class Post 
+  has_many :post_tags
+  has_many :tags, through: :post_tags
+end 
+
+class PostTag
+  belongs_to :post
+  belongs_to :tag
+end
+
+class Tag
+  has_many :post_tags
+  has_many :posts, through: :post_tags
+end 
+```
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+--- 
+
+<!-- Begin Slide -->
+
+## Overriding Defaults: Twitter Domain
+
+<iframe 
+  src="https://replit.com/@DakotaLMartinez/BulkyChocolateDatalogs?lite=true#README.md"
+  className="frame"
+>
+</iframe>
+
+<Note>
+
+```rb
+class User
+  has_many :tweets
+  has_many :likes
+  has_many :liked_tweets, through: :likes, source: :tweet
+end 
+
+class Like
+  belongs_to :user
+  belongs_to :tweet
+end
+
+class Tweet
+  belongs_to :user
+  has_many :likes
+  has_many :liked_users, through: :likes, source: :user
+end 
+```
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## Before Break
+
+- [Migrations](https://api.rubyonrails.org/v6.1/classes/ActiveRecord/Migration.html)
+  - `dog_walks` table
+    - dog_id (foreign key)
+    - walk_id (foreign key)
+  - `walks` table
+    - remove reference to dogs
+- Models/Associations ([has_many](https://apidock.com/rails/ActiveRecord/Associations/ClassMethods/has_many) & [belongs_to](https://apidock.com/rails/ActiveRecord/Associations/ClassMethods/belongs_to))
+  - Add `DogWalk` model
+  - Rework `Dog` and `Walk` models to utilize `DogWalk` to establish many-to-many
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+# ☕️ Break ☕️
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## Part 2
+
+- Custom Class methods
+  - `Walk` class
+    - Add `.recent` method for returning all recent walks
+  - `Dog` class
+    - update `.needs_feeding` method to use an [AR query method](https://guides.rubyonrails.org/v6.1/active_record_querying.html) instead of filter
+    - update `.needs_walking` method to use an [AR query method](https://guides.rubyonrails.org/v6.1/active_record_querying.html) instead of filter 
+    - remove the `update` calls in `walk` and `feed` as they contain duplicated data
+- Migration ([remove columns](https://api.rubyonrails.org/v6.1/classes/ActiveRecord/Migration.html) we no longer need)
+  - `dogs` table
+  - name (string)
+  - age (string)
+  - breed (string)
+  - favorite_treats (string)
+  - ~~last_fed_at (datetime)~~
+  - ~~last_walked_at (datetime)~~
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+# Advanced
+## Twitter Domain Association Macros with Follows
+
+```rb
+# id	email	encrypted_password
+class User < ActiveRecord::Base
+	has_many :tweets
+	has_many :likes
+	has_many :follows_as_follower, class_name: 'Follow', 
+  foreign_key: :follower_user_id
+	has_many :follows_as_followed, class_name: 'Follow', 
+  foreign_key: :followed_user_id
+	has_many :followed_users, through: :follows_as_follower, 
+  source: :followed_user
+	has_many :followers, through: :follows_as_followed, 
+  source: :follower_user
+end
+# id content user_id
+class Tweet < ActiveRecord::Base
+	belongs_to :user
+	has_many :likes
+end
+
+# id follower_user_id followed_user_id
+class Follow < ActiveRecord::Base
+	belongs_to :follower_user, class_name: 'User'
+	belongs_to :followed_user, class_name: 'User'
+end
+
+# id user_id tweet_id
+class Like < ActiveRecord::Base
+	belongs_to :user
+	belongs_to :tweet
+end
+```
+[Video Review](https://youtu.be/vrN6WqX4hhM)
+
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
+
+<!-- Begin Slide -->
+
+## Resources
+
+- [Add Follower/Followed Relationship](https://dev.to/knheidorn/rails-crash-course-building-follower-following-relationship-4kjl)
+- [ActiveRecord Advanced Querying Video Tutorial Series from thoughtbot](https://thoughtbot.com/upcase/advanced-activerecord-querying)
+- [For A Good strftime](https://www.foragoodstrftime.com/)
+- [Ruby strftime docs](https://apidock.com/ruby/DateTime/strftime)
+
+<Note>
+
+
+
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+
+</Note>
+
+<!-- End Slide -->
+
+--- 
